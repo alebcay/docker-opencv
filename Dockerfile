@@ -22,9 +22,11 @@ RUN sed -i 's/main$/main contrib non-free/' /etc/apt/sources.list \
 	&& apt-get install -y \
 		build-essential \
 		cmake \
+		default-jdk \
 		git \
 		libgtk2.0-dev \
 		pkg-config \
+		libatlas-base-dev \
 		libavcodec-dev \
 		libavformat-dev \
 		libavresample-dev \
@@ -33,9 +35,10 @@ RUN sed -i 's/main$/main contrib non-free/' /etc/apt/sources.list \
 		libeigen3-dev \
 		libgflags-dev \
 		libgoogle-glog-dev \
-		libhdf5-mpi-dev \
+		libhdf5-dev \
 		libjpeg-dev \
 		liblapack-dev \
+		liblapacke-dev \
 		libogre-1.9-dev \
 		libopenblas-dev \
 		libpng-dev \

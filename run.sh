@@ -11,11 +11,11 @@ REPOSITORY=alebcay/opencv-build
 TAG=1.0
 FORCE_BUILD=0
 ENVIRONMENT=
-TARGETS=()
 
 export OPENCV_BUILD_CONTRIB=0
 export OPENCV_BUILD_TARGET_ANDROID=0
-export OPENCV_BUILD_TARGET_CPP=0
+export OPENCV_BUILD_TARGET_CPP_SHARED=0
+export OPENCV_BUILD_TARGET_CPP_STATIC=0
 export OPENCV_BUILD_TARGET_JAVA=0
 export OPENCV_BUILD_TARGET_JS=0
 export OPENCV_VERSION=0
@@ -24,13 +24,27 @@ while getopts crvt:-: arg; do
   case $arg in
     c ) OPENCV_BUILD_CONTRIB=1 ;;
     r ) FORCE_BUILD=1 ;;
-    t ) TARGETS+=("$OPTARG") ;;
+    t ) case $OPTARG in
+            android ) OPENCV_BUILD_TARGET_ANDROID=1 ;;
+            cpp-shared ) OPENCV_BUILD_TARGET_CPP_SHARED=1 ;;
+            cpp-static ) OPENCV_BUILD_TARGET_CPP_STATIC=1 ;;
+            java ) OPENCV_BUILD_TARGET_JAVA=1 ;;
+            js ) OPENCV_BUILD_TARGET_JS=1 ;;
+            * ) echo "no such target $OPTARG known" >&2; exit 2;;
+        esac ;;
     v ) OPENCV_VERSION="$OPTARG" ;;
     - ) LONG_OPTARG="${OPTARG#*=}"
         case $OPTARG in
             with-contrib )  OPENCV_BUILD_CONTRIB=1 ;;
             rebuild      )  FORCE_BUILD=1 ;;
-            target=?*    )  TARGETS+=("$LONG_OPTARG") ;;
+            target=?*    )  case $LONG_OPTARG in
+                                android ) OPENCV_BUILD_TARGET_ANDROID=1 ;;
+                                cpp-shared ) OPENCV_BUILD_TARGET_CPP_SHARED=1 ;;
+                                cpp-static ) OPENCV_BUILD_TARGET_CPP_STATIC=1 ;;
+                                java ) OPENCV_BUILD_TARGET_JAVA=1 ;;
+                                js ) OPENCV_BUILD_TARGET_JS=1 ;;
+                                * ) echo "no such target $LONG_OPTARG known" >&2; exit 2;;
+                            esac ;;
             target*      )  echo "No arg for --$OPTARG option" >&2; exit 2 ;;
             version=?*   )  OPENCV_VERSION="$LONG_OPTARG" ;;
             version*     )  echo "No arg for --$OPTARG option" >&2; exit 2 ;;
@@ -38,26 +52,11 @@ while getopts crvt:-: arg; do
                             echo "No arg allowed for --$OPTARG option" >&2; exit 2 ;;
             ''           )  break ;; # "--" terminates argument processing
             *            )  echo "Illegal option --$OPTARG" >&2; exit 2 ;;
-         esac ;;
+        esac ;;
     \? ) exit 2 ;;  # getopts already reported the illegal option
   esac
 done
 shift $((OPTIND-1)) # remove parsed options and args from $@ list
-
-for target in "${TARGETS[@]}"
-do
-    case $target in
-        android ) OPENCV_BUILD_TARGET_ANDROID=1 ;;
-        cpp ) OPENCV_BUILD_TARGET_CPP=1 ;;
-        java ) OPENCV_BUILD_TARGET_JAVA=1 ;;
-        js ) OPENCV_BUILD_TARGET_JS=1 ;;
-        * ) echo "no such target $target known" >&2; exit 2;;
-    esac
-done
-
-if [ ${#TARGETS[@]} -eq 0 ]; then
-    OPENCV_BUILD_TARGET_CPP=1
-fi
 
 # Create shared folders
 # Although Docker would create non-existing directories on the fly,
@@ -97,7 +96,8 @@ else
         -e OPENCV_BUILD_CONTRIB \
         -e OPENCV_BUILD_TARGETS \
         -e OPENCV_BUILD_TARGET_ANDROID \
-        -e OPENCV_BUILD_TARGET_CPP \
+        -e OPENCV_BUILD_TARGET_CPP_SHARED \
+        -e OPENCV_BUILD_TARGET_CPP_STATIC \
         -e OPENCV_BUILD_TARGET_JAVA \
         -e OPENCV_BUILD_TARGET_JS \
         -e LANG=C.UTF-8 \
